@@ -2,6 +2,7 @@
 
 ### Requirement
 
+- [Node.js](https://nodejs.org/)
 - [Kaitai Struct](http://kaitai.io/)
 - (Optional) [upx](https://upx.github.io/)
 
