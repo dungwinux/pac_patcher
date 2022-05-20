@@ -70,18 +70,25 @@ offset_change = 0;
 parsed.chunks.forEach((chunk) => {
     const patched_file = chunk.name + ".srp";
 
+    // console.log(`${chunk.fileContent.cat} ${chunk.name}`);
+
     // Uncomment to backup original file
     // fs.writeFileSync(patched_file + ".bak", decode(chunk.fileContent.data));
     if (chunk.fileContent.cat == "srp" && fs.existsSync(patched_file)) {
+        // Replace srp files (categorized as "srp" in .ksy)
+        // if modified file found in current working directory
         console.log(`Modifying ${chunk.name} using ${chunk.name}.srp`);
         const patched_data = encodeSrp(`${chunk.name}.srp`);
+        local_offset = patched_data.byteLength - chunk.fileContent.offsetSize;
         chunk.fileContent = new CraftedChunk(
             patched_data,
-            offset_change + chunk.fileContent.relOffset,
+            chunk.fileContent.relOffset + offset_change,
             patched_data.byteLength
         );
-        offset_change += patched_data.byteLength - chunk.fileContent.offsetSize;
-    } else if (offset_change !== 0) {
+        offset_change += local_offset;
+    } else {
+        // Else, only update relative offset
+        console.log(`Updating offset of ${chunk.name}`);
         chunk.fileContent = new CraftedChunk(
             chunk.fileContent.data,
             chunk.fileContent.relOffset + offset_change,
@@ -104,7 +111,6 @@ counter += 4;
 
 console.log(`Writing names...`);
 parsed.chunks.forEach((chunk) => {
-    let new_data = Buffer.from(chunk.fileContent.data);
     // Buffer.copy
     patched.write(chunk.name, counter, parsed.nameLength);
     counter += parsed.nameLength;
