@@ -4,6 +4,9 @@
 
 - [Node.js](https://nodejs.org/)
 - [Kaitai Struct](http://kaitai.io/)
+- Node.js Global dependency
+    - [nexe](https://www.npmjs.com/package/nexe)
+    - [@vercel/ncc](https://www.npmjs.com/package/@vercel/ncc)
 - (Optional) [upx](https://upx.github.io/)
 
 ### Build instruction
