@@ -1,7 +1,7 @@
 /**
  * MIT License
  *
- * Copyright © 2022 Dung Tuan Nguyen
+ * Copyright (c) 2022 Dung Tuan Nguyen
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -35,79 +35,79 @@ const parsed = new Pac(new KaitaiStream(fileContent));
 
 // Tracking new offset after patching
 class CraftedChunk {
-    constructor(data, relOffset, offsetSize) {
-        this.data = data;
-        this.relOffset = relOffset;
-        this.offsetSize = offsetSize;
-    }
+  constructor(data, relOffset, offsetSize) {
+    this.data = data;
+    this.relOffset = relOffset;
+    this.offsetSize = offsetSize;
+  }
 }
 
 function rotateUInt8Right(x, n) {
-    return ((x << (8 - n)) | (x >> n)) & 0xff;
+  return ((x << (8 - n)) | (x >> n)) & 0xff;
 }
 
 function decodeText(data) {
-    const rot = 4;
-    return Buffer.from(data).map((x) => rotateUInt8Right(x, rot));
+  const rot = 4;
+  return Buffer.from(data).map((x) => rotateUInt8Right(x, rot));
 }
 
 // Rotation amount is 4, so they are the same
 const encodeText = decodeText;
 
 function encodeSrp(file) {
-    const patch = fs.readFileSync(file);
-    const patched_data = new Srp(new KaitaiStream(patch));
-    let out = Buffer.alloc(patch.byteLength);
-    let count = 0;
-    out.writeUInt32LE(patched_data.chunkCount, count);
+  const patch = fs.readFileSync(file);
+  const patched_data = new Srp(new KaitaiStream(patch));
+  let out = Buffer.alloc(patch.byteLength);
+  let count = 0;
+  out.writeUInt32LE(patched_data.chunkCount, count);
+  count += 4;
+  patched_data.chunks.forEach((chunk) => {
+    out.writeUInt16LE(chunk.codeSize, count);
+    count += 2;
+    out.writeUInt32LE(chunk.codeData.codeType, count);
     count += 4;
-    patched_data.chunks.forEach((chunk) => {
-        out.writeUInt16LE(chunk.codeSize, count);
-        count += 2;
-        out.writeUInt32LE(chunk.codeData.codeType, count);
-        count += 4;
-        if (chunk.codeData.rawText !== undefined) {
-            encodeText(iconvlite.encode(chunk.codeData.rawText, "SJIS")).copy(
-                out,
-                count
-            );
-        } else {
-            encodeText(chunk.codeData.raw).copy(out, count);
-        }
-        count += chunk.codeSize - 4;
-    });
-    return out;
+    if (chunk.codeData.rawText !== undefined) {
+      encodeText(iconvlite.encode(chunk.codeData.rawText, "SJIS")).copy(
+        out,
+        count
+      );
+    } else {
+      encodeText(chunk.codeData.raw).copy(out, count);
+    }
+    count += chunk.codeSize - 4;
+  });
+  return out;
 }
 
 offset_change = 0;
 parsed.chunks.forEach((chunk) => {
-    const patched_file = chunk.name + ".srp";
+  const patched_file = chunk.name + ".srp";
 
-    // console.log(`${chunk.fileContent.cat} ${chunk.name}`);
+  // console.log(`${chunk.fileContent.cat} ${chunk.name}`);
 
-    // Uncomment to backup original file
-    // fs.writeFileSync(patched_file + ".bak", decode(chunk.fileContent.data));
-    if (chunk.fileContent.cat == "srp" && fs.existsSync(patched_file)) {
-        // Replace srp files (categorized as "srp" in .ksy)
-        // if modified file found in current working directory
-        console.log(`Modifying ${chunk.name} using ${chunk.name}.srp`);
-        const patched_data = encodeSrp(`${chunk.name}.srp`);
-        local_offset = patched_data.byteLength - chunk.fileContent.offsetSize;
-        chunk.fileContent = new CraftedChunk(
-            patched_data,
-            chunk.fileContent.relOffset + offset_change,
-            patched_data.byteLength
-        );
-        offset_change += local_offset;
-    } else {
-        // Else, only update relative offset
-        console.log(`Updating offset of ${chunk.name}`);
-        chunk.fileContent = new CraftedChunk(
-            chunk.fileContent.data,
-            chunk.fileContent.relOffset + offset_change,
-            chunk.fileContent.offsetSize
-        );
-    }
+  // Uncomment to backup original file
+  // fs.writeFileSync(patched_file + ".bak", decode(chunk.fileContent.data));
+  if (chunk.fileContent.cat == "srp" && fs.existsSync(patched_file)) {
+    // Replace srp files (categorized as "srp" in .ksy)
+    // if modified file found in current working directory
+    console.log(`Modifying ${chunk.name} using ${chunk.name}.srp`);
+    const patched_data = encodeSrp(`${chunk.name}.srp`);
+    local_offset = patched_data.byteLength - chunk.fileContent.offsetSize;
+    chunk.fileContent = new CraftedChunk(
+      patched_data,
+      chunk.fileContent.relOffset + offset_change,
+      patched_data.byteLength
+    );
+    offset_change += local_offset;
+  } else {
+    // Else, only update relative offset
+    console.log(`Updating offset of ${chunk.name}`);
+    chunk.fileContent = new CraftedChunk(
+      chunk.fileContent.data,
+      chunk.fileContent.relOffset + offset_change,
+      chunk.fileContent.offsetSize
+    );
+  }
 });
 
 let counter = 0;
@@ -124,26 +124,26 @@ counter += 4;
 
 console.log(`Writing names...`);
 parsed.chunks.forEach((chunk) => {
-    // Buffer.copy
-    patched.write(chunk.name, counter, parsed.nameLength);
-    counter += parsed.nameLength;
-    if (parsed.version === 1) {
-        patched.writeUInt32LE(chunk.fileContent.relOffset, counter);
-        counter += 4;
-    } else if (parsed.version === 2) {
-        patched.writeBigUInt64LE(BigInt(chunk.fileContent.relOffset), counter);
-        counter += 8;
-    }
-    patched.writeUInt32LE(chunk.fileContent.offsetSize, counter);
+  // Buffer.copy
+  patched.write(chunk.name, counter, parsed.nameLength);
+  counter += parsed.nameLength;
+  if (parsed.version === 1) {
+    patched.writeUInt32LE(chunk.fileContent.relOffset, counter);
     counter += 4;
+  } else if (parsed.version === 2) {
+    patched.writeBigUInt64LE(BigInt(chunk.fileContent.relOffset), counter);
+    counter += 8;
+  }
+  patched.writeUInt32LE(chunk.fileContent.offsetSize, counter);
+  counter += 4;
 });
 
 assert(counter === parsed.dataOffset);
 console.log(`Writing data...`);
 parsed.chunks.forEach((chunk) => {
-    let new_data = Buffer.from(chunk.fileContent.data);
-    Buffer.from(chunk.fileContent.data).copy(patched, counter);
-    counter += new_data.byteLength;
+  let new_data = Buffer.from(chunk.fileContent.data);
+  Buffer.from(chunk.fileContent.data).copy(patched, counter);
+  counter += new_data.byteLength;
 });
 
 fs.writeFileSync(`${process.argv[2]}.patch.pac`, patched);

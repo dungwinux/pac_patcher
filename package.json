@@ -1,20 +1,20 @@
 {
-    "name": "pac_patcher",
-    "version": "1.0.0",
-    "description": "Simple patcher for PAC archive",
-    "main": "main.js",
-    "dependencies": {
-        "kaitai-struct": "^0.9.0",
-        "iconv-lite": "^0.6.3",
-        "safer-buffer": "^2.1.2"
-    },
-    "private": true,
-    "devDependencies": {},
-    "scripts": {
-        "generate": "kaitai-struct-compiler -t javascript pac.ksy srp.ksy",
-        "compile": "npm run generate && ncc build main.js -m",
-        "build": "npm run compile && nexe -t 14.15.3 dist/index.js -o dist/patch.exe && cd dist",
-        "compress": "upx patch.exe"
-    },
-    "license": "MIT"
+  "name": "pac_patcher",
+  "version": "1.0.0",
+  "description": "Simple patcher for PAC archive",
+  "main": "main.js",
+  "dependencies": {
+    "kaitai-struct": "^0.9.0",
+    "iconv-lite": "^0.6.3",
+    "safer-buffer": "^2.1.2"
+  },
+  "private": true,
+  "devDependencies": {},
+  "scripts": {
+    "generate": "kaitai-struct-compiler -t javascript pac.ksy srp.ksy",
+    "compile": "npm run generate && ncc build main.js -m",
+    "build": "npm run compile && nexe -t 14.15.3 dist/index.js -o dist/patch.exe && cd dist",
+    "compress": "upx patch.exe"
+  },
+  "license": "MIT"
 }
