@@ -1,7 +1,12 @@
+# Node.js
+package-lock.json
+node_modules/
+
+# build & generated
 Pac.js
 Srp.js
-package-lock.json
 dist/
-node_modules/
+
+# runtime
 *.srp
 *.srp.bak
